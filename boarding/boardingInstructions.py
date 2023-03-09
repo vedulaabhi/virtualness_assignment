@@ -72,7 +72,7 @@ class BoardingInstructionsService:
             elif card.seat and not card.gate:
                 description = description + (f" Sit in seat {card.seat}.")
             else:
-                description = description + (f"No seat assignment.")
+                description = description + (f" No seat assignment.")
             if card.baggageDrop:
                 if card.baggageDrop == "automatic":
                     description = description + (
