@@ -61,8 +61,14 @@ class TestBoardingInstructionsService(unittest.TestCase):
             self.boarding_cards[1],
             self.boarding_cards[2],
         ]
-        output = self.boarding_instructions_service._BoardingInstructionsService__sort_boarding_cards(
+        (
+            origins,
+            destinations,
+        ) = self.boarding_instructions_service._BoardingInstructionsService__get_origins_destinations(
             self.boarding_cards
+        )
+        output = self.boarding_instructions_service._BoardingInstructionsService__sort_boarding_cards(
+            self.boarding_cards, origins, destinations
         )
         self.assertListEqual(output, expected_output)
 
@@ -90,6 +96,7 @@ class TestBoardingInstructionsService(unittest.TestCase):
             "From C, take bus to D. Sit in seat C1. Baggage will be automatically transferred from your last leg.",
             "You have arrived at your final destination.",
         ]
+
         output, comments = self.boarding_instructions_service.get_boarding_instructions(
             self.boarding_cards
         )

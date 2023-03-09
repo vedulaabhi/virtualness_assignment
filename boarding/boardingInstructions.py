@@ -9,22 +9,36 @@ class BoardingInstructionsService:
 
     def get_boarding_instructions(self, boarding_cards: List[BoardingCard]):
 
+        # Get the origins and destinations
+        origins, destinations = self.__get_origins_destinations(boarding_cards)
+
         # Sort the boarding cards
-        sorted_cards = self.__sort_boarding_cards(boarding_cards)
+        sorted_cards = self.__sort_boarding_cards(boarding_cards, origins, destinations)
 
         # Generate the journey description
         journey_description = self.__generate_journey_description(sorted_cards)
 
         # Check for directed cyclic graph
-        if self.__is_connected(boarding_cards):
+        if self.__is_connected(origins, destinations):
             comments = "This is a connected graph, output is complete"
         else:
             comments = "This is not a connected graph, output can be inaccurate"
 
         return journey_description, comments
 
+    def __get_origins_destinations(self, boarding_cards: List[BoardingCard]) -> set:
+        """
+        Get the origins and destinations from the boarding cards.
+        """
+        origins = set()
+        destinations = set()
+        for card in boarding_cards:
+            origins.add(card.origin)
+            destinations.add(card.destination)
+        return origins, destinations
+
     def __sort_boarding_cards(
-        self, boarding_cards: List[BoardingCard]
+        self, boarding_cards: List[BoardingCard], origins: set, destinations: set
     ) -> List[BoardingCard]:
         """
         Algorithm: Topological Sort
@@ -37,11 +51,10 @@ class BoardingInstructionsService:
 
         # Determine starting point
         start = None
-        destinations = set()
         for card in boarding_cards:
-            destinations.add(card.destination)
             if card.origin not in destinations:
                 start = card
+                break
 
         # Perform topological sort
         sorted_cards = []
@@ -52,6 +65,30 @@ class BoardingInstructionsService:
         sorted_cards.reverse()
 
         return sorted_cards
+
+    def __dfs(
+        self,
+        card: BoardingCard,
+        visited: set,
+        sorted_cards: List[BoardingCard],
+        boarding_cards: List[BoardingCard],
+    ):
+        visited.add(card)
+        for next_card in boarding_cards:
+            if next_card not in visited and next_card.origin == card.destination:
+                self.__dfs(next_card, visited, sorted_cards, boarding_cards)
+
+        sorted_cards.append(card)
+
+    def __is_connected(self, origins: set, destinations: set) -> bool:
+        """
+        Determine if the given set of origins and destinations is connected.
+        """
+        return (
+            len(origins)
+            == len(destinations)
+            == len(set.union(origins, destinations)) - 1
+        )
 
     def __generate_journey_description(
         self, sorted_cards: List[BoardingCard]
@@ -96,31 +133,3 @@ class BoardingInstructionsService:
         journey_description.append("You have arrived at your final destination.")
 
         return journey_description
-
-    def __dfs(
-        self,
-        card: BoardingCard,
-        visited: set,
-        sorted_cards: List[BoardingCard],
-        boarding_cards: List[BoardingCard],
-    ):
-        visited.add(card)
-        for next_card in boarding_cards:
-            if next_card not in visited and next_card.origin == card.destination:
-                self.__dfs(next_card, visited, sorted_cards, boarding_cards)
-        sorted_cards.append(card)
-
-    def __is_connected(self, boarding_cards: List[BoardingCard]) -> bool:
-        """
-        Determine if the given list of boarding cards form a connected graph.
-        """
-        destinations = set()
-        origins = set()
-        for card in boarding_cards:
-            origins.add(card.origin)
-            destinations.add(card.destination)
-        return (
-            len(origins)
-            == len(destinations)
-            == len(set.union(origins, destinations)) - 1
-        )
