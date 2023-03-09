@@ -16,12 +16,14 @@ class TestBoardingInstructionsService(unittest.TestCase):
                 gate="1",
                 seat="A1",
                 baggageDrop="2",
+                transportationNumber="123",
             ),
             BoardingCard(
                 origin="B",
                 destination="C",
                 transportation="train",
                 seat="B1",
+                transportationNumber="456",
             ),
             BoardingCard(
                 origin="C",
@@ -29,6 +31,26 @@ class TestBoardingInstructionsService(unittest.TestCase):
                 transportation="bus",
                 seat="C1",
                 baggageDrop="automatic",
+                transportationNumber="789",
+            ),
+        ]
+        self.boarding_cards_cyclic = [
+            BoardingCard(
+                origin="A",
+                destination="B",
+                transportation="flight",
+                gate="1",
+                seat="A1",
+                baggageDrop="2",
+                transportationNumber="123",
+            ),
+            BoardingCard(
+                origin="C",
+                destination="D",
+                transportation="bus",
+                seat="C1",
+                baggageDrop="automatic",
+                transportationNumber="789",
             ),
         ]
         self.boarding_instructions_service = BoardingInstructionsService()
@@ -52,7 +74,7 @@ class TestBoardingInstructionsService(unittest.TestCase):
         ]
         expected_output = [
             "Take flight from A to B. Gate 1, seat A1. Baggage drop at 2.",
-            "From B, take train to C. Sit in seat B1. No baggage drop.",
+            "From B, take train to C. Sit in seat B1.",
             "From C, take bus to D. Sit in seat C1. Baggage will be automatically transferred from your last leg.",
             "You have arrived at your final destination.",
         ]
@@ -64,11 +86,19 @@ class TestBoardingInstructionsService(unittest.TestCase):
     def test_get_boarding_instructions(self):
         expected_output = [
             "Take flight from A to B. Gate 1, seat A1. Baggage drop at 2.",
-            "From B, take train to C. Sit in seat B1. No baggage drop.",
+            "From B, take train to C. Sit in seat B1.",
             "From C, take bus to D. Sit in seat C1. Baggage will be automatically transferred from your last leg.",
             "You have arrived at your final destination.",
         ]
-        output = self.boarding_instructions_service.get_boarding_instructions(
+        output, comments = self.boarding_instructions_service.get_boarding_instructions(
             self.boarding_cards
         )
         self.assertListEqual(output, expected_output)
+
+    def test_get_boarding_instructions_with_invalid_input(self):
+        output, comments = self.boarding_instructions_service.get_boarding_instructions(
+            self.boarding_cards_cyclic
+        )
+        self.assertEqual(
+            comments, "This is not a connected graph, output can be inaccurate"
+        )

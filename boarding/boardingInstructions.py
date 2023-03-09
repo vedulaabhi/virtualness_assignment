@@ -16,10 +16,10 @@ class BoardingInstructionsService:
         journey_description = self.__generate_journey_description(sorted_cards)
 
         # Check for directed cyclic graph
-        if self.__is_dag(boarding_cards):
-            comments = "This is a directed graph, output is complete"
+        if self.__is_connected(boarding_cards):
+            comments = "This is a connected graph, output is complete"
         else:
-            comments = "This is not a cyclic graph, output is incomplete"
+            comments = "This is not a connected graph, output can be inaccurate"
 
         return journey_description, comments
 
@@ -42,6 +42,7 @@ class BoardingInstructionsService:
             destinations.add(card.destination)
             if card.origin not in destinations:
                 start = card
+
         # Perform topological sort
         sorted_cards = []
         visited = set()
@@ -75,7 +76,7 @@ class BoardingInstructionsService:
                     f"From {prev_card.destination}, take {card.transportation} to {card.destination}."
                 )
             if card.gate and card.seat:
-                description = description + (f"Gate {card.gate}, seat {card.seat}.")
+                description = description + (f" Gate {card.gate}, seat {card.seat}.")
             elif card.seat and not card.gate:
                 description = description + (f" Sit in seat {card.seat}.")
             else:
@@ -83,10 +84,12 @@ class BoardingInstructionsService:
             if card.baggageDrop:
                 if card.baggageDrop == "automatic":
                     description = description + (
-                        f"Baggage will be automatically transferred from your last leg."
+                        f" Baggage will be automatically transferred from your last leg."
                     )
                 else:
-                    description = description + (f"Baggage drop at {card.baggageDrop}.")
+                    description = description + (
+                        f" Baggage drop at {card.baggageDrop}."
+                    )
 
             journey_description.append(description)
 
@@ -107,29 +110,17 @@ class BoardingInstructionsService:
                 self.__dfs(next_card, visited, sorted_cards, boarding_cards)
         sorted_cards.append(card)
 
-    def __is_dag(self, boarding_cards: List[BoardingCard]) -> bool:
+    def __is_connected(self, boarding_cards: List[BoardingCard]) -> bool:
         """
-        Determine if the given list of boarding cards forms a directed acyclic graph (DAG).
-        A graph is a DAG if and only if it has a topological ordering.
+        Determine if the given list of boarding cards form a connected graph.
         """
         destinations = set()
         origins = set()
         for card in boarding_cards:
             origins.add(card.origin)
             destinations.add(card.destination)
-        roots = origins - destinations
-        if len(roots) != 1:
-            return False
-        start = next(iter(roots))
-        visited = set()
-        stack = [start]
-        while stack:
-            node = stack.pop()
-            if node in visited:
-                return False
-            visited.add(node)
-            for card in boarding_cards:
-                if card.origin == node:
-                    stack.append(card.destination)
-
-        return len(visited) - 1 == len(destinations)
+        return (
+            len(origins)
+            == len(destinations)
+            == len(set.union(origins, destinations)) - 1
+        )

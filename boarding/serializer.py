@@ -4,9 +4,9 @@ from boarding.bos import BoardingCard
 
 class BoardingCardSchema(Schema):
     transportation = fields.Str(required=True)
-    transportation_number = fields.Str(required=False, allow_none=True)
     origin = fields.Str(required=True)
     destination = fields.Str(required=True)
+    transportationNumber = fields.Str(required=False, allow_none=True)
     seat = fields.Str(required=False, allow_none=True)
     gate = fields.Str(required=False, allow_none=True)
     baggageDrop = fields.Str(required=False, allow_none=True)
@@ -19,13 +19,13 @@ class BoardingCardsSchema(Schema):
     def get_card_objects(data):
         return [
             BoardingCard(
-                card.get("transportation"),
-                card.get("transportation_number"),
-                card.get("origin"),
-                card.get("destination"),
-                card.get("seat"),
-                card.get("gate"),
-                card.get("baggageDrop"),
+                transportation=card.get("transportation"),
+                transportationNumber=card.get("transportationNumber"),
+                origin=card.get("origin"),
+                destination=card.get("destination"),
+                seat=card.get("seat"),
+                gate=card.get("gate"),
+                baggageDrop=card.get("baggageDrop"),
             )
             for card in data["boardingCards"]
         ]

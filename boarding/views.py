@@ -22,10 +22,8 @@ class BordingInstructionsView(View):
                 400,
             )
             return response
-
         boarding_cards = BoardingCardsSchema.get_card_objects(serialized_data)
         instructions, comments = self.service.get_boarding_instructions(boarding_cards)
-        print("blaaa")
         response = make_response(
             jsonify(
                 {
