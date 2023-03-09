@@ -1,6 +1,6 @@
 from typing import List
 from flask.views import View
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 
 from boarding.boardingInstructions import BoardingInstructionsService
 from boarding.serializer import BoardingCardsSchema
@@ -17,9 +17,24 @@ class BordingInstructionsView(View):
         try:
             serialized_data = BoardingCardsSchema().load(data)
         except Exception as e:
-            return jsonify({"error": str(e)}), 400
+            response = make_response(
+                jsonify({"instructions": None, "comments": str(e), "status": "error"}),
+                400,
+            )
+            return response
 
         boarding_cards = BoardingCardsSchema.get_card_objects(serialized_data)
-        instructions = self.service.get_boarding_instructions(boarding_cards)
-        result = {"instructions": instructions}
-        return jsonify(result)
+        instructions, comments = self.service.get_boarding_instructions(boarding_cards)
+        print("blaaa")
+        response = make_response(
+            jsonify(
+                {
+                    "instructions": instructions,
+                    "comments": comments,
+                    "status": "success",
+                }
+            ),
+            200,
+        )
+
+        return response

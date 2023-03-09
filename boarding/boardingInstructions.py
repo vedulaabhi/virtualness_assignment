@@ -1,6 +1,6 @@
 from typing import List
 
-from boarding.bos import BoardingCard
+from .bos import BoardingCard
 
 
 class BoardingInstructionsService:
@@ -8,20 +8,27 @@ class BoardingInstructionsService:
         pass
 
     def get_boarding_instructions(self, boarding_cards: List[BoardingCard]):
+
         # Sort the boarding cards
         sorted_cards = self.__sort_boarding_cards(boarding_cards)
 
         # Generate the journey description
         journey_description = self.__generate_journey_description(sorted_cards)
 
-        return journey_description
+        # Check for directed cyclic graph
+        if self.__is_dag(boarding_cards):
+            comments = "This is a directed graph, output is complete"
+        else:
+            comments = "This is not a cyclic graph, output is incomplete"
+
+        return journey_description, comments
 
     def __sort_boarding_cards(
         self, boarding_cards: List[BoardingCard]
     ) -> List[BoardingCard]:
         """
         Algorithm: Topological Sort
-        Assumes the input in the form of a directed graph.
+        Assumes the input in the form of a directed acyclic graph(DAG).
         1. Determine the starting point by finding the card with no origin.
         2. Perform a depth first search on the graph.
         3. Reverse the list to get the correct order.
@@ -99,3 +106,30 @@ class BoardingInstructionsService:
             if next_card not in visited and next_card.origin == card.destination:
                 self.__dfs(next_card, visited, sorted_cards, boarding_cards)
         sorted_cards.append(card)
+
+    def __is_dag(self, boarding_cards: List[BoardingCard]) -> bool:
+        """
+        Determine if the given list of boarding cards forms a directed acyclic graph (DAG).
+        A graph is a DAG if and only if it has a topological ordering.
+        """
+        destinations = set()
+        origins = set()
+        for card in boarding_cards:
+            origins.add(card.origin)
+            destinations.add(card.destination)
+        roots = origins - destinations
+        if len(roots) != 1:
+            return False
+        start = next(iter(roots))
+        visited = set()
+        stack = [start]
+        while stack:
+            node = stack.pop()
+            if node in visited:
+                return False
+            visited.add(node)
+            for card in boarding_cards:
+                if card.origin == node:
+                    stack.append(card.destination)
+
+        return len(visited) - 1 == len(destinations)
