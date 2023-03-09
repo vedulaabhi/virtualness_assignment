@@ -9,4 +9,4 @@ class BoardingCard:
     destination: str
     seat: str
     gate: str
-    baggage_drop: str
+    baggageDrop: str

@@ -19,18 +19,22 @@ class BoardingInstructionsService:
     def __sort_boarding_cards(
         self, boarding_cards: List[BoardingCard]
     ) -> List[BoardingCard]:
-        # Determine starting point and ending point
+        """
+        Algorithm: Topological Sort
+        Assumes the input in the form of a directed graph.
+        1. Determine the starting point by finding the card with no origin.
+        2. Perform a depth first search on the graph.
+        3. Reverse the list to get the correct order.
+        O(V + E) time complexity (V = number of vertices, E = number of edges or number of boarding cards n)
+        """
+
+        # Determine starting point
         start = None
-        end = None
         destinations = set()
         for card in boarding_cards:
             destinations.add(card.destination)
             if card.origin not in destinations:
                 start = card
-        for card in boarding_cards:
-            if card.destination not in destinations:
-                end = card
-
         # Perform topological sort
         sorted_cards = []
         visited = set()
@@ -44,34 +48,44 @@ class BoardingInstructionsService:
     def __generate_journey_description(
         self, sorted_cards: List[BoardingCard]
     ) -> List[str]:
-
-        # generate the journey description
+        """
+        Generate the journey description from the sorted boarding cards.
+        This is a simple implementation;
+        ideally we have to create templates as static inputs of fetching from a database.
+        Like fetch baggageDrop type etc.
+        """
         journey_description = []
         for i in range(len(sorted_cards)):
+            description = ""
             card = sorted_cards[i]
             if i == 0:
-                journey_description.append(
-                    f"Take {card.transportation} from {card.origin} to {card.destination}. Sit in seat {card.seat}."
+                description = description + (
+                    f"Take {card.transportation} from {card.origin} to {card.destination}."
                 )
             else:
                 prev_card = sorted_cards[i - 1]
-                journey_description.append(
+                description = description + (
                     f"From {prev_card.destination}, take {card.transportation} to {card.destination}."
                 )
-                if card.gate:
-                    journey_description.append(f"Gate {card.gate}, seat {card.seat}.")
-                else:
-                    journey_description.append(f"No seat assignment.")
-                if card.baggage_drop:
-                    journey_description.append(f"Baggage drop at {card.baggage_drop}.")
-                else:
-                    journey_description.append(
+            if card.gate and card.seat:
+                description = description + (f"Gate {card.gate}, seat {card.seat}.")
+            elif card.seat and not card.gate:
+                description = description + (f" Sit in seat {card.seat}.")
+            else:
+                description = description + (f"No seat assignment.")
+            if card.baggageDrop:
+                if card.baggageDrop == "automatic":
+                    description = description + (
                         f"Baggage will be automatically transferred from your last leg."
                     )
+                else:
+                    description = description + (f"Baggage drop at {card.baggageDrop}.")
+
+            journey_description.append(description)
+
         journey_description.append("You have arrived at your final destination.")
 
-        # join the journey description and return the result
-        return "\n".join(journey_description)
+        return journey_description
 
     def __dfs(
         self,

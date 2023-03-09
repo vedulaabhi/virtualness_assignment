@@ -9,11 +9,11 @@ class BoardingCardSchema(Schema):
     destination = fields.Str(required=True)
     seat = fields.Str(required=False, allow_none=True)
     gate = fields.Str(required=False, allow_none=True)
-    baggage_drop = fields.Str(required=False, allow_none=True)
+    baggageDrop = fields.Str(required=False, allow_none=True)
 
 
 class BoardingCardsSchema(Schema):
-    boarding_cards = fields.Nested(BoardingCardSchema, many=True, required=True)
+    boardingCards = fields.Nested(BoardingCardSchema, many=True, required=True)
 
     @staticmethod
     def get_card_objects(data):
@@ -25,7 +25,7 @@ class BoardingCardsSchema(Schema):
                 card.get("destination"),
                 card.get("seat"),
                 card.get("gate"),
-                card.get("baggage_drop"),
+                card.get("baggageDrop"),
             )
-            for card in data["boarding_cards"]
+            for card in data["boardingCards"]
         ]
