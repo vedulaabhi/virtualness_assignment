@@ -1,6 +1,6 @@
 # Boarding Instructions
 
-This is a small flask app to exposes an API to manage boarding instructions given given a list of boarding cards of a journey
+This is a small flask app which exposes an API to manage boarding instructions given a list of boarding cards of a journey.
 
 ## Assumptions
 API assumes that the boarding cards given form a DAG (Directed Acyclic Graph) and that the graph is connected. If the graph is not connected, the API will return a success with a message indicating that the graph is not connected. In that case, the API will return a list of connected subgraphs.
